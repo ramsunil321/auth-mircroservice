@@ -26,14 +26,12 @@ interface AuditLog {
 }
 
 export default function DeveloperDashboard() {
-  // Authentication state
   const [user, setUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [apiConnected, setApiConnected] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [authInitialized, setAuthInitialized] = useState<boolean>(false);
 
-  // Form states
   const [loginEmail, setLoginEmail] = useState('admin@test.com');
   const [loginPassword, setLoginPassword] = useState('AdminPassword@1234');
   const [registerName, setRegisterName] = useState('');
@@ -41,16 +39,13 @@ export default function DeveloperDashboard() {
   const [registerPassword, setRegisterPassword] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Token visibility/inspection copy states
   const [copiedAccess, setCopiedAccess] = useState(false);
   const [copiedRefresh, setCopiedRefresh] = useState(false);
 
-  // Telemetry & Admin Console states
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [userList, setUserList] = useState<User[]>([]);
   const [userListError, setUserListError] = useState<string | null>(null);
 
-  // Helper to prepend audit logs
   const logAction = (action: string, status: 'SUCCESS' | 'ERROR', details?: string) => {
     const newLog: AuditLog = {
       timestamp: new Date().toLocaleTimeString(),
@@ -61,7 +56,6 @@ export default function DeveloperDashboard() {
     setAuditLogs((prev) => [newLog, ...prev]);
   };
 
-  // Check state on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedUser = api.user;
@@ -123,13 +117,11 @@ export default function DeveloperDashboard() {
       const data = await api.register(registerName, registerEmail, registerPassword);
       logAction('REGISTER_SUCCESS', 'SUCCESS', `Created account for ${registerEmail}`);
       
-      // Auto login after registration
       logAction('LOGIN_ATTEMPT', 'SUCCESS', `Auto-logging in user ${registerEmail}`);
       const loginData = await api.login(registerEmail, registerPassword);
       setUser(loginData.user);
       logAction('LOGIN_SUCCESS', 'SUCCESS', `Authenticated as ${loginData.user.role}`);
       
-      // Reset registration form
       setRegisterName('');
       setRegisterEmail('');
       setRegisterPassword('');
@@ -163,7 +155,6 @@ export default function DeveloperDashboard() {
       const refreshed = await api.rotateTokensManually();
       if (refreshed) {
         logAction('TOKEN_ROTATION_SUCCESS', 'SUCCESS', 'Successfully swapped tokens and rotated keys');
-        // Refresh profile to verify new tokens work
         const freshUser = await api.getMe();
         setUser(freshUser);
         if (freshUser.role === 'ADMIN') {
@@ -224,7 +215,6 @@ export default function DeveloperDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-sans">
-      {/* Navigation Header */}
       <header className="border-b border-slate-200 bg-white sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -246,14 +236,11 @@ export default function DeveloperDashboard() {
         </div>
       </header>
 
-      {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* LEFT COLUMN: Controls and Auth Forms */}
           <div className="lg:col-span-5 space-y-8">
             
-            {/* Authenticated Mode Control Panel */}
             {user ? (
               <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-slate-100 bg-slate-50/70">
@@ -262,7 +249,6 @@ export default function DeveloperDashboard() {
                 </div>
                 
                 <div className="p-6 space-y-6">
-                  {/* Profile data list */}
                   <div className="space-y-4">
                     <div>
                       <span className="text-xs font-medium text-slate-400 block uppercase tracking-wider">User Identity</span>
@@ -280,7 +266,6 @@ export default function DeveloperDashboard() {
                     </div>
                   </div>
 
-                  {/* Token Inspector */}
                   <div className="space-y-4 pt-4 border-t border-slate-100">
                     <div>
                       <div className="flex items-center justify-between mb-1">
@@ -315,7 +300,6 @@ export default function DeveloperDashboard() {
                     </div>
                   </div>
 
-                  {/* Actions control buttons */}
                   <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-slate-100">
                     <button
                       onClick={handleManualRotation}
@@ -346,9 +330,7 @@ export default function DeveloperDashboard() {
                 </div>
               </div>
             ) : (
-              /* Guest Mode: Login and Registration Cards */
               <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                {/* Form Tabs */}
                 <div className="flex border-b border-slate-200">
                   <button
                     onClick={() => { setActiveTab('login'); setFormError(null); }}
@@ -381,7 +363,6 @@ export default function DeveloperDashboard() {
                   )}
 
                   {activeTab === 'login' ? (
-                    /* SIGN IN FORM */
                     <form onSubmit={handleLogin} className="space-y-4">
                       <p className="text-xs text-slate-500 mb-2">
                         System databases automatically seed the default admin account:
@@ -430,7 +411,6 @@ export default function DeveloperDashboard() {
                       </button>
                     </form>
                   ) : (
-                    /* CREATE ACCOUNT FORM */
                     <form onSubmit={handleRegister} className="space-y-4">
                       <div>
                         <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Full Name</label>
@@ -484,10 +464,8 @@ export default function DeveloperDashboard() {
             )}
           </div>
 
-          {/* RIGHT COLUMN: Audit Logging & Database Inspection */}
           <div className="lg:col-span-7 space-y-8">
             
-            {/* Database User Table (Admins Only) */}
             {user?.role === 'ADMIN' && (
               <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
@@ -547,7 +525,6 @@ export default function DeveloperDashboard() {
               </div>
             )}
 
-            {/* Developer Audit Log Console */}
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
               <div className="p-6 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
                 <div>
